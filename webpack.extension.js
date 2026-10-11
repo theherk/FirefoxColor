@@ -1,6 +1,7 @@
 /* eslint import/no-extraneous-dependencies: off */
 
 const path = require("path");
+const webpack = require("webpack");
 const merge = require("webpack-merge");
 
 const CopyWebpackPlugin = require("copy-webpack-plugin");
@@ -17,7 +18,8 @@ const {
 module.exports = merge(webpackConfig, {
   entry: {
     background: "./src/extension/background",
-    contentScript: "./src/extension/contentScript"
+    contentScript: "./src/extension/contentScript",
+    options: "./src/extension/options"
   },
   output: {
     path: path.resolve(__dirname, "build/extension"),
@@ -30,6 +32,10 @@ module.exports = merge(webpackConfig, {
     global: false
   },
   plugins: [
+    // `node.global` is disabled above (webpack's shim for it uses
+    // `Function("return this")`), but msgpack5's dependencies, bundled into the
+    // options page, reference `global`. Resolve it to `window` instead.
+    new webpack.DefinePlugin({ global: "window" }),
     new GenerateAssetWebpackPlugin({
       filename: "manifest.json",
       fn: buildManifest
@@ -37,6 +43,7 @@ module.exports = merge(webpackConfig, {
     new CopyWebpackPlugin({
       patterns: [
         { from: "LICENSE" },
+        { from: "src/extension/options.html" },
         { from: "src/images/icon.svg", to: "images/" },
         { from: "src/images/logo.svg", to: "images/" }
       ]

@@ -29,7 +29,10 @@ module.exports = merge(webpackConfig, {
     minimize: false
   },
   node: {
-    global: false
+    global: false,
+    // Only referenced by a branch that never runs in a browser (readable-stream,
+    // via msgpack5); the polyfill it would bundle uses `new Function`.
+    setImmediate: false
   },
   plugins: [
     // `node.global` is disabled above (webpack's shim for it uses
